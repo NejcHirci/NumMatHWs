@@ -40,12 +40,12 @@ include("test/runtests_part2.jl")
 
 ## Ustvarjanje poročila
 
-Za analizo rezultatov in testiranje rešitve sem uporabil Jupyter zvezek. Zato je potrebno za ustvarjanje poročila namestiti Jupyter:
+Za analizo rezultatov in testiranje rešitve sem uporabil Jupyter zvezek in programski jezik Julia. Za pravilno uporabo je potrebno aktivirati projekt in instancirati okolje z zahtevanimi paketi. To storimo z ukazom:
 
 ```julia
-using Pkg
-Pkg.add("IJulia")
-Pkg.actiavte(".")
+# V paketnem načinu naložimo okolje
+activate .
+instantiate
 ```
 
 Nato lahko z uporabo ukaza `jupyter notebook` poženemo Jupyter in odpremo `docs/porocilo.ipynb`. V njem lahko nato izvozimo poročilo v obliki HTML ali PDF datoteke.
