@@ -1,18 +1,17 @@
-# 2. domača naloga
+# 3. domača naloga
 
 Avtor: **Nejc Hirci**
 
-Izvorna koda za nalogi implementacije porazdelitvene funkcije normalne porazdelitve in izračun ploščine hipotrohoide.
-
-## Porazdelitvena funkcija normalne slučajne spremenljivke
+Izvorna koda za reševanje sistema diferencialnih enačb omejenega krožnega problema treh teles.
 
 ### Opis naloge
 
-Napišite učinkovito funkcijo, ki izračuna vrednosti porazdelitvene funkcije za standardno normalno porazdeljeno slučajno spremenljivko $X \sim N(0, 1)$.
+Naloga opiše gibanje sonde v sistemu treh teles, kjer se sonda giblje v gravitacijskem polju Zemlje in Lune.
+
 
 ### Uporaba implementacije
 
-Rešitev je implementirana v Julia programskem jeziku, pri čemer se žele funkcije nahajo v datoteki `src/main.jl`. Funkcija `gaussian_cdf(x, tol=1e-10)` z uporabo Rombergove metode numerično izračuna vrednost porazdelitvene funkcije normalne slučajne spremenljivke za vrednost `x`. Uporabnik lahko določi tudi natančnost izračuna z izbirnim argumentom `tol`. Primer uporabe je prikazan v Jupyter zvezku `docs/porocilo.ipynb`.
+Rešitev je implementirana v Julia programskem jeziku, pri čemer se žele funkcije nahajo v datoteki `src/main.jl`. Primer uporabe je prikazan v Jupyter zvezku `docs/porocilo.ipynb`.
 
 ### Zagon testov
 
