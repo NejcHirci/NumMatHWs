@@ -10,7 +10,7 @@ glede na začetna pogoja `m` in `M`.
 - `xn::Vector{Float64}`: trenutni položaj in hitrost sonde
 
 """
-function dF(xn, rat=0.0123)
+function dF(xn, rat=0.1)
     # [dxdt] = [v_x]
     # [dydt] = [v_y]
     # [dzdt] = [v_z]
@@ -24,22 +24,33 @@ function dF(xn, rat=0.0123)
     # Razdalja med sondo in Luno
     r_m = sqrt((x-1.0+rat)^2 + y^2 + z^2)
 
-    dv_x = x + 2 * v_y - (1.0-rat) / r_M^3 * (x + rat) - rat / r_m^3 * (x - 1.0 + rat)
-    dv_y = y - 2 * v_x - (1.0-rat) / r_M^3 * y - rat / r_m^3 * y
-    dv_z = - (1.0-rat) / r_M^3 * z - rat / r_m^3 * z
-
+    dv_x = 
+        2 * v_y
+        + x 
+        - (1.0-rat) * (x + rat) / r_M^3 
+        - rat / r_m^3 * (x - 1.0 + rat)
+    dv_y = 
+        -2 * v_x 
+        + y
+        - (1.0-rat) * y / r_M^3 
+        - rat * y / r_m^3
+    dv_z = 
+        -(1.0-rat) / r_M^3 * z 
+        - rat / r_m^3 * z
     return Vector{Float64}([v_x, v_y, v_z, dv_x, dv_y, dv_z])
 end
 
 
 """
-    yn = rocket_rk4(f, yn, h, steps=100)
+    yn = rocket_rk4(yn, mass_moon=1, mass_earth=1, h=0.01, steps=100)
 
 Funkcija izračuna položaj sonde v omejenem sistemu treh masnih
 teles, glede na podan začetni položaj `yn`, korak `h` in funkcijo
 položaja `f`. Implementacija uporablja Runge-Kutta metodo 4. reda.
 """
-function rocket_rk4(f, yn, h, steps=100)
+function rocket_rk4(yn, mass_moon=1, mass_earth=1, h=0.01, steps=100)
+    f = x -> dF(x, mass_moon/(mass_earth + mass_moon))
+
     out_yn = zeros(steps, 6);
     out_tn = zeros(steps, 1);
 
@@ -60,15 +71,53 @@ function rocket_rk4(f, yn, h, steps=100)
     return out_yn, out_tn
 end
 
-
 """
 
+    dy = pendulum_dF(y, g, l)
+
+Funkcija vrne rezultat desne strani sistema diferencialnih enačb
+za matematično nihalo.
+"""
+function pendulum_dF(y, l, g=9.80665)
+    θ, ω = y
+    dθ = ω
+    dω = -g/l * sin(θ)
+    return [dθ, dω]
+end
+
+"""
+    odmik = nihalo(l,t,theta0,dtheta0,n)
+
+Funkcija simulira nihanje matematičnega nihala z uporabo 
+Runge-Kutta 4. reda. Funkcija vrne odmik nihala v odvisnosti od časa.
+"""
+function nihalo(l,t,theta0,dtheta0,n)
+    h = t/n
+    y = [theta0, dtheta0]
+    out = zeros(n, 2)
+    for i=1:n
+        k1 = pendulum_dF(y, 9.81, l)
+        k2 = pendulum_dF(y + h*k1/2.0, 9.81, l)
+        k3 = pendulum_dF(y + h*k2/2.0, 9.81, l)
+        k4 = pendulum_dF(y + h*k3, 9.81, l)
+        y = y + h/6.0 * (k1 + 2 * k2 + 2 * k3 + k4)
+        out[i, :] = y
+    end
+    return out
+end
+
+"""
+    find_moon_flyby()
+
+end
+
+"""
     find_moon_flyby()
 
 Funkcija, ki z uporabo strelske metode izračuna optimalne začetne pogoje
-za obhod Lune. Za optimizacijo uporabljam sekantno metodo.
+za obhod Lune. Za optimizacijo uporabljam bisekcijo
 """
-function find_moon_flyby(init_guess, rk4_steps=1000, secant_steps=100, secant_tol=1e-6)
+function find_moon_flyby(init_low, init_high, rk4_steps=10000, bisect_steps=100, bisect_tol=1e-6)
     # t0=1.0 predstavlja en obhod Lune v nasem koordinatnem sistemu
     # 10 dni v enotah obhoda Lune
     tend = 10 / 27.3 
@@ -85,31 +134,32 @@ function find_moon_flyby(init_guess, rk4_steps=1000, secant_steps=100, secant_to
     function objective(init_cond, target)
         rk_yn, _ = rocket_rk4(rk4_F, init_cond, rk4_h, rk4_steps)
         final_pos = rk_yn[end, 1:3]
+        println("final_pos: ", final_pos)
         target_pos = target[1:3]
-        error = sqrt(sum((final_pos - target_pos).^2))
+        error = sum(target_pos - final_pos)
         return error
     end
 
-    x0 = init_guess
-    x1 = init_guess + [-1.0, 0.0, 0.0, 0.0, 20.0, 0.0]
+    x0 = init_low
+    xmid = init_low
+    x1 = init_high
 
-    for i=1:secant_steps
-        f0 = objective(x0, x0)
+    for i=1:bisect_steps
+        f0 = objective(x0, x1)
         f1 = objective(x1, x1)
+        xmid = (x0 + x1) / 2.0
+        fmid = objective(xmid, xmid)
+        println("f0: ", f0, "f1: ", f1, " fmid: ", fmid)
 
-        if abs(f1 - f0) < secant_tol
+        if abs(fmid) < bisect_tol
             println("Konvergirano po ", i, " korakih")
             break
         end
-
-        if sqrt(sum((x0 - x1).^2)) < secant_tol
-            println("Konvergirano po ", i, " korakih")
-            break
+        if sign(f1) == sign(fmid)
+            x1 = xmid
+        else
+            x0 = xmid
         end
-
-        x2 = x1 - f1 * (x1 - x0) / (f1 - f0)
-        x0, x1 = x1, x2
     end
-    println("Optimalni zacetni pogoji: ", x1)
-    return x1
+    return xmid
 end
