@@ -2,35 +2,23 @@
 
 Avtor: **Nejc Hirci**
 
-Izvorna koda za reševanje sistema diferencialnih enačb omejenega krožnega problema treh teles.
+Izvorna koda za reševanje sistema diferencialnih enačb matematičnega nihala.
 
-### Opis naloge
+## Opis naloge
 
-Naloga opiše gibanje sonde v sistemu treh teles, kjer se sonda giblje v gravitacijskem polju Zemlje in Lune.
+Naloga opiše gibanje nedušenega nitnega nihala podanega z diferencialno enačbo drugega reda. Nalogo bomo reševali z metodo Runge-Kutta 4. reda. Implementirali bomo tudi funkcijo za izračun periode nihanja nihala in jo preverili z analitično rešitvijo.
 
+## Uporaba implementacije
 
-### Uporaba implementacije
+Rešitev je implementirana v Julia programskem jeziku, pri čemer se želene funkcije nahajo v datoteki `src/main.jl`. Primer uporabe je prikazan v Jupyter zvezku `docs/porocilo.ipynb`.
 
-Rešitev je implementirana v Julia programskem jeziku, pri čemer se žele funkcije nahajo v datoteki `src/main.jl`. Primer uporabe je prikazan v Jupyter zvezku `docs/porocilo.ipynb`.
+## Zagon testov
 
-### Zagon testov
-
-Testi so implementirani v datoteki `test/runtests_part1.jl` in se zaženejo z ukazom:
+Testi so implementirani v datoteki `test/runtests.jl` in se zaženejo z ukazom:
 
 ```julia
 include("test/runtests_part1.jl")
 ```
-
-## Ploščina hipotrohoide
-
-### Opis naloge
-
-Izračunajte ploščino območja, ki ga omejuje [hipotrohoida](https://en.wikipedia.org/wiki/Hypotrochoid) podana s parametričnimi enačbami.
-
-### Uporaba implementacije
-
-Implementirana je funkcija `hypotrochoid_area(tol=1e-10)`, ki najde dve samo-presečišči v krivulji hipotrohoide (začetek in konec enega kraka) in preko
-Rombergove metode izračuna površino, ki jo omejuje krivulja.
 
 ## Ustvarjanje poročila
 

@@ -1,22 +1,32 @@
-using Test, Distributions
+using Test
 
 include("../src/main.jl");
 
 tol = 1e-10
 
-@testset verbose=true "Testiranje porazdelitvene funkcije normalne porazdelitve" begin
+@testset verbose=true "Testiranje Runge-Kutta metode 4. reda" begin
 
-    @testset verbose=true "s tabeliranimi vrednostmi" begin
-        @test abs(gaussian_cdf(0.0, 20, 1e-12) - 0.5) / 0.5 < tol
-        @test abs(gaussian_cdf(1.0, 20, 1e-12) - 0.8413447460685429) / 0.8413447460685429 < tol
-        @test abs(gaussian_cdf(-100.0, 20, 1e-12) - 0.0) < tol
-        @test abs(gaussian_cdf(10.0, 20, 1e-12) - 1.0) / 1.0 < tol
+    @testset verbose=true "globalna napaka na primeru dy=-y+1, y(0) = 2" begin
+        rk_f = (x,y) -> -y .+ 1.0
+        t = 1.0
+        y0 = [2.0]
+        n = 100 # korak velikosti 0.01
+        h = t/n
+        xs = range(0, stop=t, length=n+1)
+        y_rk4 = rk4(rk_f, y0, t, n)
+        y_true = 1.0 .+ exp.(-xs)
+        error = maximum(abs.(y_rk4 .- y_true))
+        @test error < h^4
     end
 
-    @testset verbose=true "z uporabo paketa Distributions.jl" begin
-        normal_dist = Normal()
-        for val in range(-5.0, 5.0, length=100)
-            @test abs(gaussian_cdf(val, 20, 1e-12) - cdf(normal_dist, val)) < tol
-        end
-    end
+    @testset verbose=true "ocena lokalne napake na primeru nihala" begin
+        l = 1.0
+        theta0 = 0.1
+        dtheta0 = 0.1
+        t = 1.0
+        n = 100
+        h = t/n
+        local_err = maximum(pendulum_error(l, t, theta0, dtheta0, 100))
+        @test local_err < 100.0 * h^5
+    end    
 end 
