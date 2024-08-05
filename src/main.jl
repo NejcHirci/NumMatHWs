@@ -71,45 +71,6 @@ function rocket_rk4(yn, mass_moon=1, mass_earth=1, h=0.01, steps=100)
     return out_yn, out_tn
 end
 
-"""
-
-    dy = pendulum_dF(y, g, l)
-
-Funkcija vrne rezultat desne strani sistema diferencialnih enačb
-za matematično nihalo.
-"""
-function pendulum_dF(y, l, g=9.80665)
-    θ, ω = y
-    dθ = ω
-    dω = -g/l * sin(θ)
-    return [dθ, dω]
-end
-
-"""
-    odmik = nihalo(l,t,theta0,dtheta0,n)
-
-Funkcija simulira nihanje matematičnega nihala z uporabo 
-Runge-Kutta 4. reda. Funkcija vrne odmik nihala v odvisnosti od časa.
-"""
-function nihalo(l,t,theta0,dtheta0,n)
-    h = t/n
-    y = [theta0, dtheta0]
-    out = zeros(n, 2)
-    for i=1:n
-        k1 = pendulum_dF(y, 9.81, l)
-        k2 = pendulum_dF(y + h*k1/2.0, 9.81, l)
-        k3 = pendulum_dF(y + h*k2/2.0, 9.81, l)
-        k4 = pendulum_dF(y + h*k3, 9.81, l)
-        y = y + h/6.0 * (k1 + 2 * k2 + 2 * k3 + k4)
-        out[i, :] = y
-    end
-    return out
-end
-
-"""
-    find_moon_flyby()
-
-end
 
 """
     find_moon_flyby()
@@ -162,4 +123,113 @@ function find_moon_flyby(init_low, init_high, rk4_steps=10000, bisect_steps=100,
         end
     end
     return xmid
+end
+
+
+"""
+
+    dy = pendulum_dF(y, l, g)
+
+Funkcija vrne rezultat desne strani sistema diferencialnih enačb
+za matematično nihalo.
+"""
+function pendulum_dF(y, l, g=9.80665)
+    θ, ω = y
+    dθ = ω
+    dω = -g/l * sin(θ)
+    return [dθ, dω]
+end
+
+"""
+    odmik = nihalo(l,t,theta0,dtheta0,n)
+
+Funkcija simulira nihanje matematičnega nihala z uporabo 
+Runge-Kutta 4. reda. Funkcija vrne odmik nihala v odvisnosti od časa.
+"""
+function nihalo(l,t,theta0,dtheta0,n)
+    h = t/n
+    y = [theta0, dtheta0]
+    out = zeros(n, 2)
+    out[1, :] = y
+    for i=2:n
+        k1 = pendulum_dF(y, l)
+        k2 = pendulum_dF(y + h*k1/2.0, l)
+        k3 = pendulum_dF(y + h*k2/2.0, l)
+        k4 = pendulum_dF(y + h*k3, l)
+        y = y + h/6.0 * (k1 + 2 * k2 + 2 * k3 + k4)
+        out[i, :] = y
+    end
+    return out
+end
+
+"""
+
+    dy = pendulum_dF(y, l, g)
+
+Funkcija vrne rezultat desne strani sistema diferencialnih enačb
+za matematično nihalo.
+"""
+function harmonic_dF(y, l, g=9.80665)
+    θ, ω = y
+    dθ = ω
+    dω = -g/l * θ
+    return [dθ, dω]
+end
+
+
+"""
+    odmik = harmonicno_nihalo(l,t,theta0,dtheta0,n)
+
+Funkcija simulira nihanje harmoničnega nihala, kjer uporabimo
+aproksimacijo sinθ = θ, kjer je začetni odmik dovolj majhen.
+"""
+function harmonicno_nihalo(l,t,theta0,dtheta0, n)
+    h = t/n
+    y = [theta0, dtheta0]
+    out = zeros(n, 2)
+    out[1, :] = y
+    for i=2:n
+        k1 = harmonic_dF(y, l)
+        k2 = harmonic_dF(y + h*k1/2.0, l)
+        k3 = harmonic_dF(y + h*k2/2.0, l)
+        k4 = harmonic_dF(y + h*k3, l)
+        y = y + h/6.0 * (k1 + 2 * k2 + 2 * k3 + k4)
+        out[i, :] = y
+    end
+    return out
+end
+
+"""
+
+    plot_pendulum(odmik, t)
+
+Funkcija iz rezultatov simulacije izriše grafe
+odmika, hitrosti, pospeška in prikaz začetnega stanja.
+"""
+function plot_pendulum(odmik, t, l)
+    n, _ = size(odmik)
+    xs = LinRange(0, t, n)
+    xodmik = l .* sin.(odmik[:, 1])
+    
+    display(plot(xs, xodmik, label="Odmik", xlabel="Čas", ylabel="Odmik"))
+    display(plot(xs, odmik[:,2], label="Kotna hitrost", xlabel="Čas", ylabel="Kotna hitrost"))
+end
+
+"""
+    
+    plot_compare(odmik_p, odmik_h, t, l)
+
+Funkcija izriše primerjavo harmoničnega in matematičnega nihala.
+"""
+function plot_compare(odmik_p, odmik_h, t, l)
+    n, _ = size(odmik_p)
+    xs = LinRange(0, t, n)
+    xodmik_p = l .* sin.(odmik_p[:, 1])
+    xodmik_h = l .* sin.(odmik_h[:, 1])
+    
+    plot(xs, xodmik_p, label="Matematično")
+    display(plot!(xs, xodmik_h, label="Harmonično", xlabel="Čas", ylabel="Odmik"))
+
+    plot(xs, odmik_p[:,2], label="Matematično")
+    display(plot!(xs, odmik_h[:,2], label="Harmonično", xlabel="Čas", ylabel="Kotna hitrost"))
 end
