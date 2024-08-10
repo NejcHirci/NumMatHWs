@@ -2,6 +2,6 @@
 
 Repozitorij vsebuje tri rešene seminarske naloge pri predmetu Numerična Matematika:
 
-- [1. naloga](https://github.com/NejcHirci/NumMatHWs/tree/main/HW1/)
-- [2. naloga](https://github.com/NejcHirci/NumMatHWs/tree/main/HW2/)
-- [3. naloga](https://github.com/NejcHirci/NumMatHWs/tree/main/HW3/)
+- [1. naloga](HW1/README.md)
+- [2. naloga](HW2/README.md)
+- [3. naloga](HW3/README.md)
